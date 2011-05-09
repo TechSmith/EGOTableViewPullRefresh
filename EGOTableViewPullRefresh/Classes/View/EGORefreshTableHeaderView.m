@@ -174,7 +174,7 @@
 			break;
 		case EGOOPullRefreshUpToDate:
 		  
-			_statusLabel.text = @"Up-to-date.";
+			_statusLabel.text = NSLocalizedString(@"Up-to-date.", @"Up-to-date");
 			[_activityView stopAnimating];
 			[CATransaction begin];
 			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
@@ -184,7 +184,7 @@
 			break;
 		case EGOOPullRefreshNotReachable:
 		  
-			_statusLabel.text = @"Network unavailable.";
+			_statusLabel.text = NSLocalizedString(@"Network unavailable.", @"Network unavailable");
 			[_activityView stopAnimating];
 			[CATransaction begin];
 			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
@@ -203,33 +203,43 @@
 #pragma mark -
 #pragma mark ScrollView Methods
 
-- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView {	
-	
+- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView {
+	[self egoRefreshScrollViewDidScroll:scrollView withState:EGOOPullRefreshNormal];
+}
+
+- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView withState:(EGOPullRefreshState)aState {
+	EGOPullRefreshState incomingState = aState;
+  
 	if (_state == EGOOPullRefreshLoading) {
-		
+	  
 		CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
 		offset = MIN(offset, 60);
 		scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-		
+	  
 	} else if (scrollView.isDragging) {
-		
+	  
 		BOOL _loading = NO;
 		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
 			_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 		}
 		
-		if (_state == EGOOPullRefreshPulling && scrollView.contentOffset.y > -65.0f && scrollView.contentOffset.y < 0.0f && !_loading) {
-			[self setState:EGOOPullRefreshNormal];
-		} else if (_state == EGOOPullRefreshNormal && scrollView.contentOffset.y < -65.0f && !_loading) {
-			[self setState:EGOOPullRefreshPulling];
+		if (_state == EGOOPullRefreshPulling) {
+			if ((scrollView.contentOffset.y > -65.0f) && (scrollView.contentOffset.y < 0.0f) && !_loading) {
+				[self setState:EGOOPullRefreshNormal];
+			}
+		} else {
+			[self setState:incomingState];
+			
+			if ((_state == EGOOPullRefreshNormal) && (scrollView.contentOffset.y < -65.0f) && !_loading) {
+			  [self setState:EGOOPullRefreshPulling];
+			}
 		}
 		
 		if (scrollView.contentInset.top != 0) {
 			scrollView.contentInset = UIEdgeInsetsZero;
 		}
-		
+	  
 	}
-	
 }
 
 - (void)egoRefreshScrollViewDidEndDragging:(UIScrollView *)scrollView {
@@ -239,7 +249,7 @@
 		_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 	}
 	
-	if (scrollView.contentOffset.y <= - 65.0f && !_loading) {
+	if ((_state == EGOOPullRefreshPulling) && (scrollView.contentOffset.y <= - 65.0f) && !_loading) {
 		
 		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDidTriggerRefresh:)]) {
 			[_delegate egoRefreshTableHeaderDidTriggerRefresh:self];
