@@ -108,6 +108,10 @@
 	if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceLastUpdated:)]) {
 		
 		NSDate *date = [_delegate egoRefreshTableHeaderDataSourceLastUpdated:self];
+	  
+		if (!date) {
+			date = [NSDate date];
+		}
 		
 		NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
 		[formatter setAMSymbol:@"AM"];
@@ -164,6 +168,26 @@
 			[_activityView startAnimating];
 			[CATransaction begin];
 			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions]; 
+			_arrowImage.hidden = YES;
+			[CATransaction commit];
+			
+			break;
+		case EGOOPullRefreshUpToDate:
+		  
+			_statusLabel.text = @"Up-to-date.";
+			[_activityView stopAnimating];
+			[CATransaction begin];
+			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
+			_arrowImage.hidden = YES;
+			[CATransaction commit];
+			
+			break;
+		case EGOOPullRefreshNotReachable:
+		  
+			_statusLabel.text = @"Network unavailable.";
+			[_activityView stopAnimating];
+			[CATransaction begin];
+			[CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 			_arrowImage.hidden = YES;
 			[CATransaction commit];
 			
