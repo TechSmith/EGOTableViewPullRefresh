@@ -203,21 +203,25 @@
 #pragma mark ScrollView Methods
 
 - (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView {
-	[self egoRefreshScrollViewDidScroll:scrollView withState:EGOOPullRefreshNormal];
-}
-
-- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView withState:(EGOPullRefreshState)aState {
-	EGOPullRefreshState incomingState = aState;
+	if (!(scrollView.contentOffset.y < 0.0f)) {
+	  return;
+	}
+	
+	EGOPullRefreshState incomingState = EGOOPullRefreshNormal;
   
-	if (_state == EGOOPullRefreshLoading) {
-	  
+	if (![_delegate egoRefreshTableHeaderDataSourceIsNetworkAvailable:self]) {
+		incomingState = EGOOPullRefreshNotReachable;
+	} else if (![_delegate egoRefreshTableHeaderDataSourceIsRefreshAvailable:self]) {
+		incomingState = EGOOPullRefreshUpToDate;
+	}
+	
+	if (_state == EGOOPullRefreshLoading) {	  
 		CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
 		offset = MIN(offset, 60);
 		scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-	  
 	} else if (scrollView.isDragging) {
-	  
 		BOOL _loading = NO;
+		
 		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
 			_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 		}
@@ -228,7 +232,7 @@
 			}
 		} else {
 			[self setState:incomingState];
-			
+		  
 			if ((_state == EGOOPullRefreshNormal) && (scrollView.contentOffset.y < -65.0f) && !_loading) {
 			  [self setState:EGOOPullRefreshPulling];
 			}
@@ -237,7 +241,6 @@
 		if (scrollView.contentInset.top != 0) {
 			scrollView.contentInset = UIEdgeInsetsZero;
 		}
-	  
 	}
 }
 
