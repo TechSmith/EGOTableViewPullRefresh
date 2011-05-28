@@ -110,8 +110,8 @@
 		NSDate *date = [_delegate egoRefreshTableHeaderDataSourceLastUpdated:self];
 		
 		NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-	    [formatter setDateStyle:NSDateFormatterShortStyle];
-	    [formatter setTimeStyle:NSDateFormatterShortStyle];
+		[formatter setDateStyle:NSDateFormatterShortStyle];
+		[formatter setTimeStyle:NSDateFormatterShortStyle];
 		
 		_lastUpdatedLabel.text = [NSString stringWithFormat:@"Last Updated: %@", (date) ? [formatter stringFromDate:date] : @"Never"];
 		[_lastUpdatedLabel setNeedsDisplay];
