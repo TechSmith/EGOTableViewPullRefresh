@@ -3,6 +3,10 @@ build
 **/*xcodeproj/*.mode*
 **/*xcodeproj/*pbxuser
 **/*xcodeproj/*per*
+**/**/build
+**/**/*xcodeproj/*.mode*
+**/**/*xcodeproj/*pbxuser
+**/**/*xcodeproj/*per*
 *xcodeproj/*.mode*
 *xcodeproj/*pbxuser
 *xcodeproj/*per*
