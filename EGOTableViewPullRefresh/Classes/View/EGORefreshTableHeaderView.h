@@ -30,30 +30,38 @@
 typedef enum{
 	EGOOPullRefreshPulling = 0,
 	EGOOPullRefreshNormal,
-	EGOOPullRefreshLoading,	
+	EGOOPullRefreshLoading,
 	EGOOPullRefreshUpToDate,
+	EGOOPullRefreshNotReachable,
 } EGOPullRefreshState;
 
+@protocol EGORefreshTableHeaderDelegate;
 @interface EGORefreshTableHeaderView : UIView {
 	
-	UILabel *lastUpdatedLabel;
-	UILabel *statusLabel;
-	CALayer *arrowImage;
-	UIActivityIndicatorView *activityView;
-	
+	id _delegate;
 	EGOPullRefreshState _state;
-	UIColor *bottomBorderColor;
-	CGFloat bottomBorderThickness;
+
+	UILabel *_lastUpdatedLabel;
+	UILabel *_statusLabel;
+	CALayer *_arrowImage;
+	UIActivityIndicatorView *_activityView;
+	
 
 }
 
-@property(nonatomic,assign) EGOPullRefreshState state;
-@property(nonatomic,retain) UIColor *bottomBorderColor;
-@property(nonatomic,assign) CGFloat bottomBorderThickness;
+@property(nonatomic,assign) id <EGORefreshTableHeaderDelegate> delegate;
 
-- (id)initWithFrameRelativeToFrame:(CGRect)originalFrame;
-- (void)setLastRefreshDate:(NSDate*)date;
-- (void)setCurrentDate;
-- (void)setState:(EGOPullRefreshState)aState;
+- (void)refreshLastUpdatedDate;
+- (void)egoRefreshScrollViewDidScroll:(UIScrollView *)scrollView;
+- (void)egoRefreshScrollViewDidEndDragging:(UIScrollView *)scrollView;
+- (void)egoRefreshScrollViewDataSourceDidFinishedLoading:(UIScrollView *)scrollView;
 
+@end
+@protocol EGORefreshTableHeaderDelegate
+- (void)egoRefreshTableHeaderDidTriggerRefresh:(EGORefreshTableHeaderView*)view;
+- (BOOL)egoRefreshTableHeaderDataSourceIsNetworkAvailable:(EGORefreshTableHeaderView*)view;
+- (BOOL)egoRefreshTableHeaderDataSourceIsRefreshAvailable:(EGORefreshTableHeaderView*)view;
+- (BOOL)egoRefreshTableHeaderDataSourceIsLoading:(EGORefreshTableHeaderView*)view;
+@optional
+- (NSDate*)egoRefreshTableHeaderDataSourceLastUpdated:(EGORefreshTableHeaderView*)view;
 @end
