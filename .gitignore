@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 build
 **/build
 **/*xcodeproj/*.mode*
@@ -14,3 +15,15 @@ build
 ~*
 .DS_Store
 native_iphone
+=======
+# Xcode
+build/*
+*.pbxuser
+!default.pbxuser
+*.xcworkspace
+!default.xcworkspace
+xcuserdata
+profile
+*.moved-aside
+.DS_Store
+>>>>>>> 7a160a3bd95db1f85e0dd0fe1c7dce0aad8e6b78
