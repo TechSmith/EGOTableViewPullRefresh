@@ -38,9 +38,6 @@
 
 @implementation EGORefreshTableHeaderView
 
-@synthesize delegate=_delegate;
-
-
 - (id)initWithFrame:(CGRect)frame
      arrowImageName:(NSString *)arrow
           textColor:(UIColor *)textColor
@@ -66,7 +63,6 @@
 		label.textAlignment = UITextAlignmentCenter;
 		[self addSubview:label];
 		_lastUpdatedLabel=label;
-		[label release];
 		
 		label = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, frame.size.height - 48.0f, self.frame.size.width, 20.0f)];
 		label.autoresizingMask = UIViewAutoresizingFlexibleWidth;
@@ -78,7 +74,6 @@
 		label.textAlignment = UITextAlignmentCenter;
 		[self addSubview:label];
 		_statusLabel=label;
-		[label release];
 		
 		CALayer *layer = [CALayer layer];
 		layer.frame = CGRectMake(25.0f, frame.size.height - 65.0f, 30.0f, 55.0f);
@@ -95,10 +90,10 @@
 		_arrowImage=layer;
 		
 		UIActivityIndicatorView *view = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+       view.color = textColor;
 		view.frame = CGRectMake(25.0f, frame.size.height - 38.0f, 20.0f, 20.0f);
 		[self addSubview:view];
 		_activityView = view;
-		[view release];
 		
 		
 		[self setState:EGOOPullRefreshNormal];
@@ -119,12 +114,12 @@
 
 - (void)refreshLastUpdatedDate {
 	
-	if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceLastUpdated:)]) {
+	if ([self.delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceLastUpdated:)]) {
 		
-		NSDate *date = [_delegate egoRefreshTableHeaderDataSourceLastUpdated:self];
+		NSDate *date = [self.delegate egoRefreshTableHeaderDataSourceLastUpdated:self];
 		
 		[NSDateFormatter setDefaultFormatterBehavior:NSDateFormatterBehaviorDefault];
-		NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
 		[dateFormatter setDateStyle:NSDateFormatterShortStyle];
 		[dateFormatter setTimeStyle:NSDateFormatterShortStyle];
 
@@ -198,24 +193,27 @@
 	if (_state == EGOOPullRefreshLoading) {
 		
 		CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
-		offset = MIN(offset, 60);
+		offset = MIN(offset, 60 + [self supplementaryViewHeight]);
 		scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
+      NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 		
 	} else if (scrollView.isDragging) {
 		
 		BOOL _loading = NO;
-		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
-			_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
+		if ([self.delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
+			_loading = [self.delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 		}
 		
-		if (_state == EGOOPullRefreshPulling && scrollView.contentOffset.y > -65.0f && scrollView.contentOffset.y < 0.0f && !_loading) {
+      CGFloat pullHeight = 65.0f + [self supplementaryViewHeight];
+      
+		if (_state == EGOOPullRefreshPulling && scrollView.contentOffset.y > -pullHeight  && scrollView.contentOffset.y < 0.0f && !_loading) {
 			[self setState:EGOOPullRefreshNormal];
-		} else if (_state == EGOOPullRefreshNormal && scrollView.contentOffset.y < -65.0f && !_loading) {
+		} else if (_state == EGOOPullRefreshNormal && scrollView.contentOffset.y < -pullHeight && !_loading) {
 			[self setState:EGOOPullRefreshPulling];
 		}
 		
 		if (scrollView.contentInset.top != 0) {
-			scrollView.contentInset = UIEdgeInsetsZero;
+         scrollView.contentInset = UIEdgeInsetsMake([self supplementaryViewHeight], 0.0f, 0.0f, 0.0f);
 		}
 		
 	}
@@ -225,20 +223,23 @@
 - (void)egoRefreshScrollViewDidEndDragging:(UIScrollView *)scrollView {
 	
 	BOOL _loading = NO;
-	if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
-		_loading = [_delegate egoRefreshTableHeaderDataSourceIsLoading:self];
+	if ([self.delegate respondsToSelector:@selector(egoRefreshTableHeaderDataSourceIsLoading:)]) {
+		_loading = [self.delegate egoRefreshTableHeaderDataSourceIsLoading:self];
 	}
 	
-	if (scrollView.contentOffset.y <= - 65.0f && !_loading) {
+   CGFloat pullHeight = 65.0f + [self supplementaryViewHeight];
+   
+	if (scrollView.contentOffset.y <= - pullHeight && !_loading) {
 		
-		if ([_delegate respondsToSelector:@selector(egoRefreshTableHeaderDidTriggerRefresh:)]) {
-			[_delegate egoRefreshTableHeaderDidTriggerRefresh:self];
+		if ([self.delegate respondsToSelector:@selector(egoRefreshTableHeaderDidTriggerRefresh:)]) {
+			[self.delegate egoRefreshTableHeaderDidTriggerRefresh:self];
 		}
 		
 		[self setState:EGOOPullRefreshLoading];
 		[UIView beginAnimations:nil context:NULL];
 		[UIView setAnimationDuration:0.2];
-		scrollView.contentInset = UIEdgeInsetsMake(60.0f, 0.0f, 0.0f, 0.0f);
+		scrollView.contentInset = UIEdgeInsetsMake(60.0f + [self supplementaryViewHeight], 0.0f, 0.0f, 0.0f);
+      NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 		[UIView commitAnimations];
 		
 	}
@@ -249,26 +250,64 @@
 	
 	[UIView beginAnimations:nil context:NULL];
 	[UIView setAnimationDuration:.3];
-	[scrollView setContentInset:UIEdgeInsetsMake(0.0f, 0.0f, 0.0f, 0.0f)];
+	[scrollView setContentInset:UIEdgeInsetsMake([self supplementaryViewHeight], 0.0f, 0.0f, 0.0f)];
+   NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 	[UIView commitAnimations];
 	
 	[self setState:EGOOPullRefreshNormal];
 
 }
 
-
-#pragma mark -
-#pragma mark Dealloc
-
-- (void)dealloc {
-	
-	_delegate=nil;
-	_activityView = nil;
-	_statusLabel = nil;
-	_arrowImage = nil;
-	_lastUpdatedLabel = nil;
-    [super dealloc];
+-(CGFloat) supplementaryViewHeight
+{
+   return [self.supplementaryView frame].size.height;
 }
 
+// view coords are top left.
+-(void) moveView:(UIView*)view by:(CGFloat)pointsToMove
+{
+   CGRect rect = view.frame;
+   rect.origin.y -= pointsToMove;
+   view.frame = rect;
+}
+
+-(void) moveControlsUpBy:(CGFloat)pointsToMove
+{
+   [self moveView:_lastUpdatedLabel by:pointsToMove];
+	[self moveView:_statusLabel by:pointsToMove];
+	[self moveView:_activityView by:pointsToMove];
+
+   CGRect rect = _arrowImage.frame;
+   rect.origin.y -= pointsToMove;
+   _arrowImage.frame = rect;
+	
+}
+
+-(void)setSupplementaryView:(UIView *)supplementaryView
+{
+   CGFloat oldSuppHeight = [self supplementaryViewHeight];
+   
+   if( _supplementaryView && supplementaryView != _supplementaryView )
+   {
+      [self moveControlsUpBy:-oldSuppHeight];
+      [_supplementaryView removeFromSuperview];
+   }
+   
+   if( supplementaryView && supplementaryView != _supplementaryView )
+   {
+      
+      CGRect suppFrame = supplementaryView.frame;
+      
+      suppFrame.origin.y = self.bounds.size.height - suppFrame.size.height;
+      supplementaryView.frame = suppFrame;
+      
+      [self addSubview:supplementaryView];
+      
+      [self moveControlsUpBy:suppFrame.size.height - oldSuppHeight];
+   }
+   _supplementaryView = supplementaryView;
+   [self setState:EGOOPullRefreshNormal];
+   
+}
 
 @end
