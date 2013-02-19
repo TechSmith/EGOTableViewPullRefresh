@@ -195,7 +195,6 @@
 		CGFloat offset = MAX(scrollView.contentOffset.y * -1, 0);
 		offset = MIN(offset, 60 + [self supplementaryViewHeight]);
 		scrollView.contentInset = UIEdgeInsetsMake(offset, 0.0f, 0.0f, 0.0f);
-      NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 		
 	} else if (scrollView.isDragging) {
 		
@@ -239,7 +238,6 @@
 		[UIView beginAnimations:nil context:NULL];
 		[UIView setAnimationDuration:0.2];
 		scrollView.contentInset = UIEdgeInsetsMake(60.0f + [self supplementaryViewHeight], 0.0f, 0.0f, 0.0f);
-      NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 		[UIView commitAnimations];
 		
 	}
@@ -251,7 +249,6 @@
 	[UIView beginAnimations:nil context:NULL];
 	[UIView setAnimationDuration:.3];
 	[scrollView setContentInset:UIEdgeInsetsMake([self supplementaryViewHeight], 0.0f, 0.0f, 0.0f)];
-   NSLog(@"inset by: %f", 60.0f + [self supplementaryViewHeight]);
 	[UIView commitAnimations];
 	
 	[self setState:EGOOPullRefreshNormal];
@@ -303,7 +300,7 @@
       
       [self addSubview:supplementaryView];
       
-      [self moveControlsUpBy:suppFrame.size.height - oldSuppHeight];
+      [self moveControlsUpBy:suppFrame.size.height];
    }
    _supplementaryView = supplementaryView;
    [self setState:EGOOPullRefreshNormal];
